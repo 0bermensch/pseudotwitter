@@ -1,4 +1,5 @@
 // import { COOKIE_NAME, __prod__ } from "./constants";
+import "reflect-metadata";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
@@ -23,7 +24,7 @@ const main = async () => {
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
-    entities: [User, Tweet],
+    entities: [Tweet, User],
   });
 
   const app = express();
@@ -70,7 +71,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver, TweetResolver],
+      resolvers: [TweetResolver, UserResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({

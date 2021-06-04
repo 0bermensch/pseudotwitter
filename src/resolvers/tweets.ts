@@ -15,7 +15,7 @@ import {
 } from "type-graphql";
 import { MyContext } from "src/types";
 import { getConnection } from "typeorm";
-import { isAuth } from "src/middleware/isAuth";
+import { isAuth } from "../middleware/isAuth";
 
 @InputType()
 class TweetInput {
@@ -23,6 +23,14 @@ class TweetInput {
   title: string;
   @Field()
   text: string;
+}
+
+@ObjectType()
+class PaginatedTweets {
+  @Field(() => [Tweet])
+  tweets: Tweet[];
+  @Field()
+  hasMore: boolean;
 }
 
 @Resolver(Tweet)
@@ -34,6 +42,58 @@ export class TweetResolver {
   @FieldResolver(() => String)
   textSnippet(@Root() root: Tweet) {
     return root.text.slice(0, 50);
+  }
+
+  /*
+  adding a pagination to the tweets, because I am planning to use mock data,
+  and showing all the mock tweets may be too long at once
+  */
+
+  //
+  @Query(() => PaginatedTweets)
+  async tweets(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+    @Ctx() { req }: MyContext
+  ): Promise<PaginatedTweets> {
+    const realLimit = Math.min(50, limit);
+    /* 
+    realLimitPlusOne is used so that when we reach all the end
+    of all the tweet and plus will return false, then the
+    load more button from pagination will be disabled
+    */
+    const realLimitPlusOne = realLimit + 1;
+    const replacements: any[] = [realLimitPlusOne];
+
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)));
+    }
+    const tweets = await getConnection().query(
+      `
+      select t.*,
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'createdat', u."createdAt",
+        'updatedAt', u."updatedAt"
+      ) creator
+      from tweet t
+      inner join public.user u on u.id = t."creatorId"
+      ${cursor ? `where t."createdAt" < $2` : ""}
+      order by t."createdAt" DESC
+      limit $1
+      `,
+      replacements
+    );
+    return {
+      tweets: tweets.splace(0, realLimit),
+      hasMore: tweets.length === realLimitPlusOne,
+    };
+  }
+
+  @Query(() => Tweet, { nullable: true })
+  post(@Arg("id", () => Int) id: number): Promise<Tweet | undefined> {
+    return Tweet.findOne(id);
   }
 
   @Mutation(() => Tweet)
