@@ -20,33 +20,31 @@ export class Comment extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Field()
+  @Column({ type: "text" })
+  comment: string;
+
   @Field(() => Int)
   @PrimaryColumn()
   userId!: number;
 
   @Field()
-  @ManyToOne(() => User, (user) => user.comments, {
-    onDelete: "CASCADE",
-  })
-  user!: User;
-
-  // @Field(() => User)
-  // @ManyToOne(() => User, (user) => user.comments)
-  // creator: User;
-
-  @Field()
   @PrimaryColumn()
   tweetId: number;
 
-  @Field(() => Tweet)
-  @ManyToOne(() => Tweet, (tweet) => tweet.comments, {
-    onDelete: "CASCADE",
-  })
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.comments)
+  user: User;
+
+  @ManyToOne(() => Tweet, (tweet) => tweet.comments, { onDelete: "CASCADE" })
   tweet: Tweet;
 
-  @Field()
-  @Column()
-  comment: string;
+  @Field(() => Int, { nullable: true })
+  @Column({ nullable: true, type: "int" })
+  parentCommentId: number;
+
+  @Field(() => [Comment], { nullable: true })
+  childComments: Partial<Comment>[];
 
   @Field(() => String)
   @CreateDateColumn()
@@ -55,24 +53,4 @@ export class Comment extends BaseEntity {
   @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date;
-
-  //   @Field(() => Int)
-  //   @PrimaryGeneratedColumn()
-  //   id!: number;
-
-  //   @Field()
-  //   @ManyToOne(() => User, (user) => user.comments, { onDelete: "CASCADE" })
-  //   user: User;
-
-  //   @Field(() => Int)
-  //   @PrimaryColumn()
-  //   tweetId!: number;
-
-  //   @Field(() => Tweet)
-  //   @ManyToOne(() => Tweet, (tweet) => tweet.comments, {
-  //     onDelete: "CASCADE",
-  //   })
-  //   @Field()
-  //   @Column()
-  //   commit: string;
 }

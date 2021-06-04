@@ -16,6 +16,8 @@ import {
 import { MyContext } from "src/types";
 import { getConnection } from "typeorm";
 import { isAuth } from "../middleware/isAuth";
+import { User } from "../entities/User";
+import { Comment } from "../entities/Comment";
 
 @InputType()
 class TweetInput {
@@ -42,6 +44,47 @@ export class TweetResolver {
   @FieldResolver(() => String)
   textSnippet(@Root() root: Tweet) {
     return root.text.slice(0, 50);
+  }
+
+  @FieldResolver(() => User)
+  creator(@Root() tweet: Tweet, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(tweet.creatorId);
+  }
+
+  // manually writing the query for comment within a tweet
+  @FieldResolver(() => [Comment], { nullable: true })
+  async comments(@Root() tweet: Tweet) {
+    return await getConnection().query(
+      `
+        SELECT c.id,
+        c.comment,
+        c."createdAt",
+        c."userId",
+        CASE
+          WHEN COUNT(r.id) > 0 THEN(
+            json_agg(
+              json_build_object(
+                'id', r.id,
+                'comment', r.comment,
+                'createdAt', r."createdAt",
+                'userId',  r."userId"
+              )
+            )
+          )
+          ELSE NULL
+                END AS "childComments"
+            FROM "comment" AS c
+                LEFT JOIN comment AS r ON r."parentCommentId" = c.id
+                 WHERE c."postId" = $1
+                AND c."parentCommentId" IS NULL
+            GROUP BY c.id,
+                c.comment,
+                c."createdAt",
+                c."userId"
+            ORDER BY c."createdAt" DESC
+`,
+      [tweet.id]
+    );
   }
 
   /*

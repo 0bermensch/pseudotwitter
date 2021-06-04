@@ -26,6 +26,8 @@ const Tweet_1 = require("../entities/Tweet");
 const type_graphql_1 = require("type-graphql");
 const typeorm_1 = require("typeorm");
 const isAuth_1 = require("../middleware/isAuth");
+const User_1 = require("../entities/User");
+const Comment_1 = require("../entities/Comment");
 let TweetInput = class TweetInput {
 };
 __decorate([
@@ -55,6 +57,41 @@ PaginatedTweets = __decorate([
 let TweetResolver = class TweetResolver {
     textSnippet(root) {
         return root.text.slice(0, 50);
+    }
+    creator(tweet, { userLoader }) {
+        return userLoader.load(tweet.creatorId);
+    }
+    comments(tweet) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield typeorm_1.getConnection().query(`
+        SELECT c.id,
+        c.comment,
+        c."createdAt",
+        c."userId",
+        CASE
+          WHEN COUNT(r.id) > 0 THEN(
+            json_agg(
+              json_build_object(
+                'id', r.id,
+                'comment', r.comment,
+                'createdAt', r."createdAt",
+                'userId',  r."userId"
+              )
+            )
+          )
+          ELSE NULL
+                END AS "childComments"
+            FROM "comment" AS c
+                LEFT JOIN comment AS r ON r."parentCommentId" = c.id
+                 WHERE c."postId" = $1
+                AND c."parentCommentId" IS NULL
+            GROUP BY c.id,
+                c.comment,
+                c."createdAt",
+                c."userId"
+            ORDER BY c."createdAt" DESC
+`, [tweet.id]);
+        });
     }
     tweets(limit, cursor, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -121,6 +158,20 @@ __decorate([
     __metadata("design:paramtypes", [Tweet_1.Tweet]),
     __metadata("design:returntype", void 0)
 ], TweetResolver.prototype, "textSnippet", null);
+__decorate([
+    type_graphql_1.FieldResolver(() => User_1.User),
+    __param(0, type_graphql_1.Root()), __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Tweet_1.Tweet, Object]),
+    __metadata("design:returntype", void 0)
+], TweetResolver.prototype, "creator", null);
+__decorate([
+    type_graphql_1.FieldResolver(() => [Comment_1.Comment], { nullable: true }),
+    __param(0, type_graphql_1.Root()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Tweet_1.Tweet]),
+    __metadata("design:returntype", Promise)
+], TweetResolver.prototype, "comments", null);
 __decorate([
     type_graphql_1.Query(() => PaginatedTweets),
     __param(0, type_graphql_1.Arg("limit", () => type_graphql_1.Int)),

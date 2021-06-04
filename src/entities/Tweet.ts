@@ -27,6 +27,10 @@ export class Tweet extends BaseEntity {
   @Column()
   text!: string;
 
+  // @Field(() => Int)
+  // @Column({type: 'int', default:0})
+  // commentCount!: number
+
   // @Field()
   // @Column()
   // comments!: string[]
@@ -36,10 +40,11 @@ export class Tweet extends BaseEntity {
   creatorId: number;
 
   @Field(() => User)
-  @ManyToOne(() => User, (creator) => creator.tweets)
+  @ManyToOne(() => User, (user) => user.tweets)
   creator: User;
 
-  @OneToMany(() => Comment, (comment) => comment.user)
+  @Field(() => [Comment])
+  @OneToMany(() => Comment, (comment) => comment.tweet)
   comments: Comment[];
 
   @Field(() => String)

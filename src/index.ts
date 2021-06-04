@@ -14,17 +14,20 @@ import { COOKIE_NAME } from "./types";
 import { UserResolver } from "./resolvers/user";
 import { Tweet } from "./entities/Tweet";
 import { TweetResolver } from "./resolvers/tweets";
+import { createUserLoader } from "./utils/createUserLoader";
+import { CommentResolver } from "./resolvers/comment";
+import { Comment } from "./entities/Comment";
 
 const main = async () => {
   const connection = await createConnection({
     type: "postgres",
-    database: "pseudotwitter",
+    database: "pseudotwitter2",
     username: "postgres",
     password: "admin",
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
-    entities: [Tweet, User],
+    entities: [Tweet, User, Comment],
   });
 
   const app = express();
@@ -71,13 +74,14 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [TweetResolver, UserResolver],
+      resolvers: [TweetResolver, UserResolver, CommentResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({
       req,
       res,
       redis,
+      userLoader: createUserLoader(),
     }),
   });
 
