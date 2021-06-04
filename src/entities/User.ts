@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Tweet } from "./Tweet";
-// import { Comment } from "./Comment";
+import { Comment } from "./Comment";
 
 @ObjectType()
 @Entity()
@@ -28,14 +28,14 @@ export class User extends BaseEntity {
   /*
   creating relation with Tweet's data,
   where the oneToMany relationship defines that
-  a singular user can make a post that be viewed
+  a singular user can make a tweet that be viewed
   and interacted by other users.
   */
   @OneToMany(() => Tweet, (tweet) => tweet.creator)
   tweets: Tweet[];
 
-  // @OneToMany(() => Comment, (comment) => comment.creator)
-  // comments: Comment[];
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 
   @Field(() => String)
   @CreateDateColumn()

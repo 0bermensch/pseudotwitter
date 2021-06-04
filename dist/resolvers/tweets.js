@@ -79,12 +79,12 @@ let TweetResolver = class TweetResolver {
       limit $1
       `, replacements);
             return {
-                tweets: tweets.splace(0, realLimit),
+                tweets: tweets.splice(0, realLimit),
                 hasMore: tweets.length === realLimitPlusOne,
             };
         });
     }
-    post(id) {
+    tweet(id) {
         return Tweet_1.Tweet.findOne(id);
     }
     createTweet(input, { req }) {
@@ -136,7 +136,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
-], TweetResolver.prototype, "post", null);
+], TweetResolver.prototype, "tweet", null);
 __decorate([
     type_graphql_1.Mutation(() => Tweet_1.Tweet),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),

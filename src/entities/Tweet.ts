@@ -5,11 +5,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
-// import { Comment } from "./Comment";
+import { Comment } from "./Comment";
 
 @ObjectType()
 @Entity()
@@ -26,16 +27,20 @@ export class Tweet extends BaseEntity {
   @Column()
   text!: string;
 
+  // @Field()
+  // @Column()
+  // comments!: string[]
+
   @Field()
   @Column()
   creatorId: number;
 
   @Field(() => User)
-  @ManyToOne(() => User, (user) => user.tweets)
+  @ManyToOne(() => User, (creator) => creator.tweets)
   creator: User;
 
-  // @OneToMany(() => Comment, (comment) => comment.post)
-  // comments: Comment[];
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 
   @Field(() => String)
   @CreateDateColumn()

@@ -86,13 +86,13 @@ export class TweetResolver {
       replacements
     );
     return {
-      tweets: tweets.splace(0, realLimit),
+      tweets: tweets.splice(0, realLimit),
       hasMore: tweets.length === realLimitPlusOne,
     };
   }
 
   @Query(() => Tweet, { nullable: true })
-  post(@Arg("id", () => Int) id: number): Promise<Tweet | undefined> {
+  tweet(@Arg("id", () => Int) id: number): Promise<Tweet | undefined> {
     return Tweet.findOne(id);
   }
 
