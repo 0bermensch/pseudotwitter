@@ -8,6 +8,7 @@ import connectRedis from "connect-redis";
 import cors from "cors";
 import { createConnection } from "typeorm";
 import path from "path";
+import { User } from "./entities/User";
 
 const main = async () => {
   const connection = await createConnection({
@@ -65,7 +66,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers,
+      resolvers: [User],
       validate: false,
     }),
     context: ({ req, res }) => ({
