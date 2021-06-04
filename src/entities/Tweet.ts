@@ -4,13 +4,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
-import { Comment } from "./Comment";
+// import { Comment } from "./Comment";
 
 @ObjectType()
 @Entity()
@@ -35,8 +34,8 @@ export class Tweet extends BaseEntity {
   @ManyToOne(() => User, (user) => user.tweets)
   creator: User;
 
-  @OneToMany(() => Comment, (comment) => comment.post)
-  comments: Comment[];
+  // @OneToMany(() => Comment, (comment) => comment.post)
+  // comments: Comment[];
 
   @Field(() => String)
   @CreateDateColumn()
