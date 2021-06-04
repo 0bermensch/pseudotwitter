@@ -9,7 +9,7 @@ import {
   FieldResolver,
   Root,
 } from "type-graphql";
-import { MyContext } from "../types";
+import { MyContext, COOKIE_NAME } from "../types";
 import { User } from "../entities/User";
 import argon2 from "argon2";
 import { v4 } from "uuid";
@@ -86,6 +86,63 @@ export class UserResolver {
     return { user };
   }
 
+  /*
+   login mutation
+   the api will receive the username input from the frontend
+   and find whether the username exists in the database,
+   if it exists then it will store the user id in session and
+   allow the user to remain logged in, if not it will return an error message
+  */
+
   @Mutation(() => UserResponse)
-  async login();
+  async login(
+    @Arg("username") username: string,
+    @Arg("password") password: string,
+    @Ctx() { req }: MyContext
+  ): Promise<UserResponse> {
+    const user = await User.findOne({ where: { username: username } });
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "that username does not exist",
+          },
+        ],
+      };
+    }
+    const valid = await argon2.verify(user.password, password);
+    if (!valid) {
+      return {
+        errors: [
+          {
+            field: "passowrd",
+            message: "incorrect password",
+          },
+        ],
+      };
+    }
+    /*
+    by store user id in session with cookie on the user
+    the user will remain logged in when they register
+    */
+
+    req.session.userId = user.id;
+
+    return { user };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      })
+    );
+  }
 }

@@ -9,3 +9,5 @@ export type MyContext = {
   res: Response;
   redis: Redis;
 };
+
+export const COOKIE_NAME = "qid";

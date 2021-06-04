@@ -9,6 +9,7 @@ import cors from "cors";
 import { createConnection } from "typeorm";
 import path from "path";
 import { User } from "./entities/User";
+import { COOKIE_NAME } from "./types";
 
 const main = async () => {
   const connection = await createConnection({
@@ -50,7 +51,7 @@ const main = async () => {
         client: redis,
         // disableTouch: true,
       }),
-      name: "qid",
+      name: COOKIE_NAME,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365, // 10 years
         httpOnly: true,
