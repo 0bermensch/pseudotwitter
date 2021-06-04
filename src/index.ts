@@ -10,17 +10,20 @@ import { createConnection } from "typeorm";
 import path from "path";
 import { User } from "./entities/User";
 import { COOKIE_NAME } from "./types";
+import { UserResolver } from "./resolvers/user";
+import { Tweet } from "./entities/Tweet";
+import { TweetResolver } from "./resolvers/tweets";
 
 const main = async () => {
   const connection = await createConnection({
     type: "postgres",
-    database: "lireddit",
+    database: "pseudotwitter",
     username: "postgres",
     password: "admin",
     logging: true,
-    synchronize: false,
+    synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
-    entities: [],
+    entities: [User, Tweet],
   });
 
   const app = express();
@@ -49,7 +52,7 @@ const main = async () => {
     session({
       store: new RedisStore({
         client: redis,
-        // disableTouch: true,
+        disableTouch: true,
       }),
       name: COOKIE_NAME,
       cookie: {
@@ -67,7 +70,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [User],
+      resolvers: [UserResolver, TweetResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({

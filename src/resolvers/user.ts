@@ -6,16 +6,13 @@ import {
   Ctx,
   ObjectType,
   Query,
-  FieldResolver,
-  Root,
 } from "type-graphql";
 import { MyContext, COOKIE_NAME } from "../types";
 import { User } from "../entities/User";
 import argon2 from "argon2";
-import { v4 } from "uuid";
 import { getConnection } from "typeorm";
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
-import { validateRegister } from "src/utils/validateRegister";
+import { validateRegister } from "../utils/validateRegister";
 
 @ObjectType()
 class FieldError {
@@ -130,6 +127,15 @@ export class UserResolver {
     req.session.userId = user.id;
 
     return { user };
+  }
+  @Query(() => User, { nullable: true })
+  me(@Ctx() { req }: MyContext) {
+    // you are not logged in
+    if (!req.session.userId) {
+      return null;
+    }
+
+    return User.findOne(req.session.userId);
   }
 
   @Mutation(() => Boolean)

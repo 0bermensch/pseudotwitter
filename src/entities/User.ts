@@ -25,6 +25,12 @@ export class User extends BaseEntity {
   @Column()
   password!: string;
 
+  /*
+  creating relation with Tweet's data,
+  where the oneToMany relationship defines that
+  a singular user can make a post that be viewed
+  and interacted by other users.
+  */
   @OneToMany(() => Tweet, (tweet) => tweet.creator)
   tweets: Tweet[];
 
